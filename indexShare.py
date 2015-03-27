@@ -2,12 +2,14 @@ __author__ = 'ethan'
 
 import re
 import cStringIO
+import StringIO
 
 
 class GlobalHTML(object):
-    def __init__(self, index_fp):
+    def __init__(self, index_fp, u=False):
         self.globals_pat = re.compile('^\s*<!--\s(?P<status>Begin|End)\sGlobal\s(?P<key>[A-Za-z ]+)\s-->$')
         self.globals_dict = dict()
+        self._requires_unicode = u
 
         index_fd = open(index_fp, 'r')
 
@@ -16,7 +18,7 @@ class GlobalHTML(object):
             mat = self.globals_pat.match(line)
             if mat:
                 if mat.groupdict()['status'] == "Begin":
-                    capturing = LineBuffer(mat.groupdict()['key'])
+                    capturing = LineBuffer(mat.groupdict()['key'], u=self._requires_unicode)
                 else:
                     # Probably End
                     k, v = capturing.yield_value()
@@ -29,7 +31,11 @@ class GlobalHTML(object):
         index_fd.close()
 
     def apply(self, target_fp):
-        new_file_buf = cStringIO.StringIO()
+        if not self._requires_unicode:
+            new_file_buf = cStringIO.StringIO()
+        else:
+            new_file_buf = StringIO.StringIO()
+
         should_yield = True
         target_fd = open(target_fp, 'r+w')
         applied_keys = []
@@ -60,9 +66,12 @@ class GlobalHTML(object):
 
 
 class LineBuffer:
-    def __init__(self, key_name):
+    def __init__(self, key_name, u=False):
         self.key_name = key_name
-        self.line_buf = cStringIO.StringIO()
+        if not u:
+            self.line_buf = cStringIO.StringIO()
+        else:
+            self.line_buf = StringIO.StringIO()
 
     def capture(self, line):
         self.line_buf.write(line)
