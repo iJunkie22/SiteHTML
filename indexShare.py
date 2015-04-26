@@ -60,6 +60,7 @@ class GlobalHTML(object):
             target_fd.seek(0)
             new_content = new_file_buf.getvalue()
             target_fd.write(new_content)
+            target_fd.truncate()
             target_fd.close()
 
         return applied_keys
