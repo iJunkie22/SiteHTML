@@ -58,8 +58,7 @@ class GlobalHTML(object):
                     new_file_buf.write(line)
         finally:
             target_fd.seek(0)
-            new_content = new_file_buf.getvalue()
-            target_fd.write(new_content)
+            target_fd.write(new_file_buf.getvalue())
             target_fd.truncate()
             target_fd.close()
 
