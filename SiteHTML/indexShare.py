@@ -61,6 +61,7 @@ class GlobalHTML(object):
             target_fd.write(new_file_buf.getvalue())
             target_fd.truncate()
             target_fd.close()
+            new_file_buf.close()
 
         return applied_keys
 
