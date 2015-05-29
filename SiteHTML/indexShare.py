@@ -6,6 +6,21 @@ import StringIO
 import sys
 
 
+class UndefinedGlobalError(KeyError):
+    def __init__(self, target_fp, line_number, global_key):
+        sys.stderr.write('<%s> Line %s :: \'%s\' not defined in index.html\n' % (target_fp, line_number, global_key))
+        pass
+
+
+class NestedGlobalError(Exception):
+    def __init__(self, target_fp, line_number, key1, key2):
+        args = (target_fp, line_number, key1, key2)
+        self.file_path = args[0]
+        self.message = '<%s> Line %s :: \'%s\' overlaps \'%s\'\n' % args
+        sys.stderr.write(self.message)
+        pass
+
+
 class GlobalHTML(object):
     globals_pat = re.compile('^\s*<!--\s(?P<status>Begin|End)\sGlobal\s(?P<key>[A-Za-z ]+)\s-->$')
 
@@ -41,52 +56,50 @@ class GlobalHTML(object):
         should_yield = True
         target_fd = open(target_fp, 'r+w')
         applied_keys = []
-        k_es = []
-        last_key = None
-        fatal_errors = []
+        g_key = None
 
         try:
             for i, line in enumerate(target_fd):
-                try:
+                mat = self.globals_pat.match(line)
+                if mat:
+                    mat_dict = mat.groupdict()
                     # Is either the Begin or End
-                    mat_dict = self.globals_pat.match(line).groupdict()
+                    new_file_buf.write(line)
+
                     if mat_dict['status'] == "Begin":
-                        last_key = mat_dict['key']
+                        g_key = mat_dict['key']
                         should_yield = False
-                        new_file_buf.write(line)
+
                         try:
-                            new_file_buf.write(self.globals_dict[mat_dict['key']])
-                            applied_keys.append(mat_dict['key'])
+                            new_file_buf.write(self.globals_dict[g_key])
+                            applied_keys.append(g_key)
 
                         except KeyError, e:
+                            UndefinedGlobalError(target_fp, i, e)
                             # Global not defined in index.html
-                            k_es.append('<%s> Line %s :: \'%s\' not defined in index.html\n' % (target_fp, i, e))
+                            pass
 
                     else:
-                        # Probably End
-                        if last_key != mat_dict['key']:
-                            fatal_errors.append('<%s> Line %s :: \'%s\' overlaps \'%s\'\n' %
-                                                (target_fp, i, mat_dict['key'], last_key))
+                        # Probably matches End Global
+                        if g_key != mat_dict['key']:
+                            raise NestedGlobalError(target_fp, i, mat_dict['key'], g_key)
+                        # Exiting the lines owned by global
                         should_yield = True
 
-                except AttributeError:
-                    # No match found
-                    pass
+                elif should_yield:
+                    # Line does not wrap or contain global lines
+                    new_file_buf.write(line)
 
-                finally:
-                    if should_yield:
-                        new_file_buf.write(line)
-        finally:
-            sys.stderr.writelines(k_es)
-            sys.stderr.writelines(fatal_errors)
             target_fd.seek(0)
-            if len(fatal_errors) == 0:
-                target_fd.write(new_file_buf.getvalue())
-                target_fd.truncate()
-                target_fd.close()
-            else:
-                sys.stderr.write('Reverting \'%s\'\n\n' % target_fp)
-                applied_keys = []
+            target_fd.write(new_file_buf.getvalue())
+            target_fd.truncate()
+
+        except NestedGlobalError, e:
+            sys.stderr.write('Reverting \'%s\'\n\n' % e.file_path)
+            applied_keys = []
+
+        finally:
+            target_fd.close()
             new_file_buf.close()
 
         return applied_keys
