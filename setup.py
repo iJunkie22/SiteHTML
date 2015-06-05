@@ -4,7 +4,7 @@ from distutils.core import setup
 
 
 setup(name='SiteHTML',
-      version='1.4',
+      version='1.41',
       author='Ethan Randall',
       author_email='iJunkie22@gmail.com',
       url='https://github.com/iJunkie22/SiteHTML',

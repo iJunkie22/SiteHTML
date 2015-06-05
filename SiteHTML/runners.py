@@ -75,7 +75,7 @@ class SiteLocation(OptionParser, object):
             for f in html_files:
                 result = my_template.apply(f)
                 if self._quiet:
-                    break
+                    continue
                 print "Updated", str(len(result)), "parts of", os.path.basename(f), ":"
                 for i, v in enumerate(result):
                     print str(i), "\t", v
