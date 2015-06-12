@@ -34,10 +34,12 @@ class GlobalHTML(object):
         for line in index_fd:
             mat = self.globals_pat.match(line)
             if mat:
+                assert mat.groupdict()['status'] in ["Begin", "End"]
                 if mat.groupdict()['status'] == "Begin":
                     capturing = LineBuffer(mat.groupdict()['key'], u=self._requires_unicode)
                 else:
                     # Probably End
+                    assert mat.groupdict()['status'] == "End"
                     k, v = capturing.yield_value()
                     self.globals_dict[k] = v
                     del capturing
@@ -48,11 +50,7 @@ class GlobalHTML(object):
         index_fd.close()
 
     def apply(self, target_fp):
-        if not self._requires_unicode:
-            new_file_buf = cStringIO.StringIO()
-        else:
-            new_file_buf = StringIO.StringIO()
-
+        new_file_buf = cStringIO.StringIO() if not self._requires_unicode else StringIO.StringIO()
         should_yield = True
         target_fd = open(target_fp, 'r+w')
         applied_keys = []
@@ -65,6 +63,7 @@ class GlobalHTML(object):
                     mat_dict = mat.groupdict()
                     # Is either the Begin or End
                     new_file_buf.write(line)
+                    assert mat_dict['status'] in ["Begin", "End"]
 
                     if mat_dict['status'] == "Begin":
                         g_key = mat_dict['key']
@@ -108,10 +107,7 @@ class GlobalHTML(object):
 class LineBuffer:
     def __init__(self, key_name, u=False):
         self.key_name = key_name
-        if not u:
-            self.line_buf = cStringIO.StringIO()
-        else:
-            self.line_buf = StringIO.StringIO()
+        self.line_buf = cStringIO.StringIO() if not u else StringIO.StringIO()
 
     def capture(self, line):
         self.line_buf.write(line)

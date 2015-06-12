@@ -8,11 +8,13 @@ from . import indexShare
 
 
 def list_eq(l1, l2):
-    fails = 0
-    fails += int(len(l1) != len(l2))
-    m_count = sum(map(int_eq, l1, l2))
-    fails += int(m_count != len(l1))
-    return fails == 0
+    try:
+        assert len(l1) == len(l2)
+        for x1, x2 in zip(l1, l2):
+            assert x1 == x2
+    except AssertionError:
+        return False
+    return True
 
 
 def int_neq(x1, x2):
@@ -76,9 +78,8 @@ class SiteLocation(OptionParser, object):
                 result = my_template.apply(f)
                 if self._quiet:
                     continue
-                print "Updated", str(len(result)), "parts of", os.path.basename(f), ":"
-                for i, v in enumerate(result):
-                    print str(i), "\t", v
+                print "Updated %s parts of %s:" % (str(len(result)), os.path.basename(f))
+                print "".join(["%s\t%s\n" % (i, v) for i, v in enumerate(result)])
 
         except ValueError:
             sys.exit(str(index_fp + " not found. Aborting."))
