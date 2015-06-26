@@ -2,7 +2,7 @@ __author__ = 'ethan'
 
 import sys
 
-from . import runners
+import runners
 
 
 def run(arg_list):

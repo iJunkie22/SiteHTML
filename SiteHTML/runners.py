@@ -4,7 +4,7 @@ import os.path
 import sys
 import glob
 
-from . import indexShare
+import indexShare
 
 
 def list_eq(l1, l2):
@@ -39,7 +39,7 @@ class OptionParser(object):
 
     @classmethod
     def opt_test(cls, test_str_list):
-        result_dict = dict()
+        result_dict = {}
         for test_str in test_str_list:
             try:
                 for pm in cls._posix_pat.match(test_str).group(0).strip('-'):
