@@ -25,7 +25,7 @@ class GlobalHTML(object):
     globals_pat = re.compile('^\s*<!--\s(?P<status>Begin|End)\sGlobal\s(?P<key>[A-Za-z ]+)\s-->$')
 
     def __init__(self, index_fp, u=False):
-        self.globals_dict = dict()
+        self.globals_dict = {}
         self._requires_unicode = u
 
         index_fd = open(index_fp, 'r')
