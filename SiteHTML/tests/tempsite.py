@@ -1,8 +1,8 @@
-__author__ = 'ethan'
-
 import tempfile
 import os.path
 import os
+
+__author__ = 'ethan'
 
 index_content = """<!DOCTYPE html>
 <html>

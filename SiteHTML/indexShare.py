@@ -1,9 +1,14 @@
-__author__ = 'ethan'
-
 import re
-import cStringIO
-import StringIO
+try:
+    import cStringIO
+    import StringIO
+except ImportError:
+    from io import StringIO
+    cStringIO = StringIO
+
 import sys
+
+__author__ = 'ethan'
 
 
 class UndefinedGlobalError(KeyError):
@@ -73,7 +78,7 @@ class GlobalHTML(object):
                             new_file_buf.write(self.globals_dict[g_key])
                             applied_keys.append(g_key)
 
-                        except KeyError, e:
+                        except KeyError as e:
                             UndefinedGlobalError(target_fp, i, e)
                             # Global not defined in index.html
                             pass
@@ -93,7 +98,7 @@ class GlobalHTML(object):
             target_fd.write(new_file_buf.getvalue())
             target_fd.truncate()
 
-        except NestedGlobalError, e:
+        except NestedGlobalError as e:
             sys.stderr.write('Reverting \'%s\'\n\n' % e.file_path)
             applied_keys = []
 
