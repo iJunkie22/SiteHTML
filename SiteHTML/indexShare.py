@@ -3,8 +3,8 @@ try:
     import cStringIO
     import StringIO
 except ImportError:
-    from io import StringIO
-    cStringIO = StringIO
+    import io
+    cStringIO = io
 
 import sys
 
@@ -57,12 +57,12 @@ class GlobalHTML(object):
     def apply(self, target_fp):
         new_file_buf = cStringIO.StringIO() if not self._requires_unicode else StringIO.StringIO()
         should_yield = True
-        target_fd = open(target_fp, 'r+w')
+        target_fd_r = open(target_fp, 'r')
         applied_keys = []
         g_key = None
 
         try:
-            for i, line in enumerate(target_fd):
+            for i, line in enumerate(target_fd_r):
                 mat = self.globals_pat.match(line)
                 if mat:
                     mat_dict = mat.groupdict()
@@ -94,16 +94,18 @@ class GlobalHTML(object):
                     # Line does not wrap or contain global lines
                     new_file_buf.write(line)
 
-            target_fd.seek(0)
-            target_fd.write(new_file_buf.getvalue())
-            target_fd.truncate()
+            target_fd_r.close()
+            with open(target_fp, 'w') as target_fd_w:
+                target_fd_w.write(new_file_buf.getvalue())
+                target_fd_w.truncate()
 
         except NestedGlobalError as e:
             sys.stderr.write('Reverting \'%s\'\n\n' % e.file_path)
             applied_keys = []
 
         finally:
-            target_fd.close()
+            if not target_fd_r.closed:
+                target_fd_r.close()
             new_file_buf.close()
 
         return applied_keys

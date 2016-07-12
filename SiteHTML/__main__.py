@@ -1,12 +1,12 @@
 import sys
-import SiteHTML.runners
+from . import runners
 
 __author__ = 'ethan'
 
 
 def run(arg_list):
     if len(arg_list) > 1 or __name__ != "__main__":
-        parser = SiteHTML.runners.SiteLocation()
+        parser = runners.SiteLocation()
         parser.parse(arg_list)
         parser.build_site()
 

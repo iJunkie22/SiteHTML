@@ -3,7 +3,7 @@ import os.path
 import sys
 import glob
 
-import SiteHTML.indexShare
+from . import indexShare
 
 __author__ = 'ethan'
 
@@ -74,7 +74,7 @@ class SiteLocation(OptionParser, object):
         index_fp = os.path.join(self._site_path, self._globals_file)
         try:
             html_files.remove(index_fp)
-            my_template = SiteHTML.indexShare.GlobalHTML(index_fp, u=self._use_unicode)
+            my_template = indexShare.GlobalHTML(index_fp, u=self._use_unicode)
 
             for f in html_files:
                 result = my_template.apply(f)
@@ -83,5 +83,5 @@ class SiteLocation(OptionParser, object):
                 print("Updated %s parts of %s:" % (str(len(result)), os.path.basename(f)))
                 print("".join(["%s\t%s\n" % (i, v) for i, v in enumerate(result)]))
 
-        except ValueError:
+        except AssertionError:
             sys.exit(str(index_fp + " not found. Aborting."))
